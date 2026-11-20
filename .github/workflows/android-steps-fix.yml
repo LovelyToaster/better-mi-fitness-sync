@@ -1,4 +1,4 @@
-name: Android step deduplication APK
+name: Android step deduplication Release APK
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   android:
-    name: Test and build APK
+    name: Test and build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -32,12 +32,12 @@ jobs:
       # in SyncCoordinator/RelativeTime tests. Run the parser regression suite here.
       - name: Run activity parser tests
         run: ./gradlew :composeApp:testAndroidHostTest --tests 'com.bettermifitness.sync.data.parse.MiFitnessParsersTest' --stacktrace --no-daemon
-      - name: Build APK
-        run: ./gradlew :androidApp:assembleDebug --stacktrace --no-daemon
-      - name: Upload APK
+      - name: Build Release APK
+        run: ./gradlew :androidApp:assembleRelease --stacktrace --no-daemon
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: BetterMiFitnessSync-steps-fix-APK
-          path: androidApp/build/outputs/apk/debug/*.apk
+          name: BetterMiFitnessSync-steps-fix-Release-APK
+          path: androidApp/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
