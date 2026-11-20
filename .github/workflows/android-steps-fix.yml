@@ -1,0 +1,41 @@
+name: Android step deduplication APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/steps-source-dedupe]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Test and build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android 37 SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+      - name: Run Android host tests
+        run: ./gradlew :composeApp:testAndroidHostTest --stacktrace --no-daemon
+      - name: Build APK
+        run: ./gradlew :androidApp:assembleDebug --stacktrace --no-daemon
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BetterMiFitnessSync-steps-fix-APK
+          path: androidApp/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30

@@ -678,4 +678,21 @@ class MiFitnessParsersTest {
         assertEquals(76, samples[0].diastolicMmhg)
         assertEquals(68, samples[0].pulseBpm)
     }
+
+    @Test
+    fun activitySteps_dedupesCrossDeviceHalfHour() {
+        val a = RawFitnessEntry(value = """{"time":1700000100,"steps":120,"distance":80}""", sid = "phone")
+        val b = RawFitnessEntry(value = """{"time":1700000100,"steps":118,"distance":76}""", sid = "band")
+        val c = RawFitnessEntry(value = """{"time":1700000160,"steps":20,"distance":10}""", sid = "phone")
+        assertEquals(140, MiFitnessParsers.parseHourlySteps(listOf(a, b, c)).single().steps)
+        assertNear(90.0, MiFitnessParsers.parseHourlyDistanceFromSteps(listOf(a, b, c)).single().meters)
+    }
+
+    @Test
+    fun activitySteps_keepsDistinctHalfHours() {
+        val a = RawFitnessEntry(value = """{"time":1700000100,"steps":45}""", sid = "phone")
+        val b = RawFitnessEntry(value = """{"time":1700002800,"steps":30}""", sid = "band")
+        val total = MiFitnessParsers.parseHourlySteps(listOf(a, b)).sumOf { it.steps }
+        assertEquals(75, total)
+    }
 }
